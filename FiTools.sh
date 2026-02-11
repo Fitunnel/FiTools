@@ -49,11 +49,11 @@ while true; do
 \$db_file = 'links.db';
 \$download_dir = 'downloads/';
 
-if (is_dir(\$download_dir)) {
-    \$files = glob(\$download_dir . '*');
-    foreach (\$files as \$file) {
-        if (is_file(\$file) && time() - filemtime(\$file) > 300) {
-            unlink(\$file);
+if (is_dir($download_dir)) {
+    $files = glob($download_dir . '*');
+    foreach ($files as $file) {
+        if (is_file($file) && time() - filemtime($file) > 86400) {
+            unlink($file);
         }
     }
 }
