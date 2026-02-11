@@ -16,6 +16,12 @@
 Pastikan Anda menggunakan **Termux** versi terbaru (F-Droid disarankan).
 
 1. **Clone Repository**
-   ```bash
+   ```
    git clone https://github.com/Fitunnel/FiTools
    cd FiTools
+   ```
+2. **Jalankan**
+   ```
+   chmod +x FiTools.sh
+   ./FiTools.sh
+   ```
