@@ -7,7 +7,7 @@
 ## 🌟 Fitur Utama
 * **📥 Universal Downloader**: Mengunduh video atau musik (MP3) dari berbagai platform menggunakan `yt-dlp`.
 * **🔗 URL Shortener**: Membuat link pendek dengan dukungan *Custom Name* dan *Expiration Date* (3-30 hari).
-* **🧹 Auto-Clean Cache**: Otomatis menghapus file hasil unduhan (Video/Musik) setelah 5 menit untuk menjaga ruang penyimpanan HP.
+* **🧹 Auto-Clean Cache**: Otomatis menghapus file hasil unduhan (Video/Musik) setelah 1 hari untuk menjaga ruang penyimpanan HP.
 * **☁️ Cloudflare Tunnel Integration**: Membuka server lokal ke publik menggunakan Cloudflare Tunnel tanpa perlu Port Forwarding.
 * **📊 Database Management**: Manajemen link aktif langsung dari terminal menggunakan SQLite3.
 
