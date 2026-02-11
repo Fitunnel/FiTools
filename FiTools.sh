@@ -20,7 +20,7 @@ show_menu() {
     echo -e "${BLUE}=======================================${NC}"
     echo -e "${BLUE}      F IT O O L S - BLUE EDITION      ${NC}"
     echo -e "${BLUE}=======================================${NC}"
-    echo -e "1) Install & Update (Auto-Clean All)"
+    echo -e "1) Install & Update (Auto-Clean 24H)"
     echo -e "2) Atur Domain / Subdomain"
     echo -e "3) Jalankan Server (ON)"
     echo -e "4) Matikan Server (OFF)"
@@ -49,11 +49,12 @@ while true; do
 \$db_file = 'links.db';
 \$download_dir = 'downloads/';
 
-if (is_dir($download_dir)) {
-    $files = glob($download_dir . '*');
-    foreach ($files as $file) {
-        if (is_file($file) && time() - filemtime($file) > 86400) {
-            unlink($file);
+// AUTO-CLEAN CACHE (Dihapus jika sudah berumur lebih dari 1 hari / 86400 detik)
+if (is_dir(\$download_dir)) {
+    \$files = glob(\$download_dir . '*');
+    foreach (\$files as \$file) {
+        if (is_file(\$file) && time() - filemtime(\$file) > 86400) {
+            unlink(\$file);
         }
     }
 }
@@ -68,7 +69,6 @@ try {
 \$msg = "";
 
 if (isset(\$_POST['action']) && \$_POST['action'] == 'download') {
-    array_map('unlink', glob("\$download_dir*"));
     \$url = escapeshellarg(\$_POST['d_url']);
     \$res_val = \$_POST['format'];
     \$opt = (\$res_val == 'mp3') ? "-x --audio-format mp3" : "-f 'bestvideo[height<=".\$res_val."]+bestaudio/best' --merge-output-format mp4";
@@ -79,7 +79,7 @@ if (isset(\$_POST['action']) && \$_POST['action'] == 'download') {
         \$new_files = glob(\$download_dir . "*");
         if (\$new_files) {
             \$file_path = \$new_files[0];
-            \$msg = "<div style='color:#3498db;border:1px solid #3498db;padding:15px;border-radius:12px;'><b>Berhasil!</b><br><small style='color:#888'>".basename(\$file_path)."</small><br><a href='\$file_path' download style='display:inline-block;background:#3498db;color:white;padding:12px 25px;margin-top:10px;text-decoration:none;border-radius:8px;font-weight:bold;'>UNDUH SEKARANG</a><br><p style='font-size:10px;color:#666;margin-top:5px;'>File otomatis dihapus dalam 5 menit.</p></div>";
+            \$msg = "<div style='color:#3498db;border:1px solid #3498db;padding:15px;border-radius:12px;'><b>Berhasil!</b><br><small style='color:#888'>".basename(\$file_path)."</small><br><a href='\$file_path' download style='display:inline-block;background:#3498db;color:white;padding:12px 25px;margin-top:10px;text-decoration:none;border-radius:8px;font-weight:bold;'>UNDUH SEKARANG</a><br><p style='font-size:10px;color:#666;margin-top:5px;'>File tersedia selama 24 jam sebelum dihapus otomatis.</p></div>";
         }
     } else { \$msg = "<div style='color:#e74c3c;'>Gagal memproses media.</div>"; }
 }
@@ -131,7 +131,7 @@ button:hover{background:#2980b9;transform:translateY(-2px)}
     <div class='footer'>Fitunnel Project © 2026</div>
 </body></html>
 EOF
-            echo -e "${GREEN}Update Selesai!${NC}"
+            echo -e "${GREEN}Update Selesai! Masa simpan cache 24 Jam aktif.${NC}"
             sleep 2
             ;;
         2)
@@ -140,18 +140,14 @@ EOF
             if [ ! -z "$INPUT_DOMAIN" ]; then
                 echo "$INPUT_DOMAIN" > "$DOMAIN_FILE"
                 DOMAIN="$INPUT_DOMAIN"
-                echo -e "${GREEN}Domain berhasil diset ke: $DOMAIN${NC}"
-            else
-                echo -e "${RED}Domain tidak boleh kosong!${NC}"
+                echo -e "${GREEN}Domain diset ke: $DOMAIN${NC}"
             fi
-            sleep 2
+            sleep 1
             ;;
         3)
             [ -z "$DOMAIN" ] && DOMAIN=$(cat "$DOMAIN_FILE" 2>/dev/null)
-            if [ -z "$DOMAIN" ]; then 
-                echo -e "${RED}Error: Atur domain dulu di Menu 2!${NC}"
+            if [ -z "$DOMAIN" ]; then echo -e "${RED}Set domain dulu!${NC}";
             else
-                echo -e "${BLUE}Menghidupkan Server untuk $DOMAIN...${NC}"
                 pkill -9 -f "php -S"; pkill -9 cloudflared
                 cd $DIR && screen -dmS phptools php -S 127.0.0.1:8080
                 screen -dmS tunnel cloudflared tunnel run --url http://127.0.0.1:8080 termux-fitools
@@ -159,11 +155,7 @@ EOF
             fi
             sleep 2
             ;;
-        4)
-            pkill -9 -f "php -S"; pkill -9 cloudflared
-            echo -e "${RED}🛑 Server telah dimatikan.${NC}"
-            sleep 1
-            ;;
+        4) pkill -9 -f "php -S"; pkill -9 cloudflared; echo -e "${RED}🛑 OFFLINE${NC}"; sleep 1 ;;
         5)
             clear
             echo -e "${BLUE}=== MANAJEMEN TUNNEL & DNS ===${NC}"
@@ -176,49 +168,23 @@ EOF
             case $t_pilih in
                 1)
                     ID_TUN=$(cloudflared tunnel list | grep "termux-fitools" | awk '{print $1}')
-                    if [ -z "$ID_TUN" ]; then echo "Tunnel belum dibuat.";
-                    else
-                        echo -e "\n${CYAN}--- INFO CLOUDFLARE ---${NC}"
-                        echo -e "Type   : ${GREEN}CNAME${NC}"
-                        echo -e "Name   : ${GREEN}tools${NC}"
-                        echo -e "Target : ${YELLOW}${ID_TUN}.cfargotunnel.com${NC}"
-                        echo -e "Proxy  : ${YELLOW}ON (Awan Orange)${NC}"
-                        echo -e "TTL    : ${YELLOW}Auto${NC}"
-                        echo -e "${CYAN}-----------------------${NC}"
-                    fi
+                    echo -e "\nTarget CNAME: ${YELLOW}${ID_TUN}.cfargotunnel.com${NC}\nProxy: ON | TTL: Auto"
                     ;;
-                2)
-                    echo -e "${YELLOW}Silakan klik link yang muncul untuk Login:${NC}"
-                    cloudflared tunnel login
-                    ;;
-                3)
-                    cloudflared tunnel delete -f termux-fitools > /dev/null 2>&1
-                    cloudflared tunnel create termux-fitools
-                    echo -e "${GREEN}Tunnel baru berhasil dibuat!${NC}"
-                    ;;
-                4)
-                    read -p "Masukkan domain untuk Route: " D_DNS
-                    cloudflared tunnel route dns termux-fitools $D_DNS
-                    ;;
+                2) cloudflared tunnel login ;;
+                3) cloudflared tunnel delete -f termux-fitools > /dev/null 2>&1; cloudflared tunnel create termux-fitools ;;
+                4) read -p "Domain: " D_DNS; cloudflared tunnel route dns termux-fitools $D_DNS ;;
             esac
-            read -p "Tekan Enter..."
+            read -p "Enter..."
             ;;
         6)
             clear
-            echo -e "${BLUE}--- DAFTAR LINK AKTIF ---${NC}"
-            if [ ! -f "$DB" ]; then echo "Kosong.";
-            else
-                sqlite3 "$DB" "SELECT id, code, CASE WHEN expires_at IS NULL THEN 'PERMANEN' ELSE expires_at END, url FROM links;" | sed 's/|/ | /g'
-                read -p "ID Hapus: " DEL_ID
-                [ ! -z "$DEL_ID" ] && sqlite3 "$DB" "DELETE FROM links WHERE id=$DEL_ID;" && echo "Dihapus!"
-            fi
+            echo -e "${BLUE}--- LINK AKTIF ---${NC}"
+            sqlite3 "$DB" "SELECT id, code, url FROM links;" | sed 's/|/ | /g'
+            read -p "ID Hapus: " DEL_ID
+            [ ! -z "$DEL_ID" ] && sqlite3 "$DB" "DELETE FROM links WHERE id=$DEL_ID;"
             read -p "Enter..."
             ;;
-        7)
-            read -p "Reset semua? (y/n): " confirm
-            [[ "$confirm" == "y" ]] && rm -rf $DIR && echo "Dibersihkan!"
-            sleep 1
-            ;;
+        7) rm -rf $DIR && echo "Reset!"; sleep 1 ;;
         8) exit 0 ;;
     esac
 done
