@@ -36,8 +36,7 @@ while true; do
     show_menu
     case $pilihan in
         1)
-            echo -e "${GREEN}Mengupdate sistem & Pembersihan Cache...${NC}"
-            rm -f "$DB"
+            echo -e "${GREEN}Mengupdate sistem & Konfigurasi Database...${NC}"
             pkg update && pkg upgrade -y
             pkg install php cloudflared python ffmpeg sqlite screen -y
             pip install yt-dlp
@@ -49,11 +48,10 @@ while true; do
 \$db_file = 'links.db';
 \$download_dir = 'downloads/';
 
-// AUTO-CLEAN CACHE (Dihapus jika sudah berumur lebih dari 1 hari / 86400 detik)
 if (is_dir(\$download_dir)) {
     \$files = glob(\$download_dir . '*');
     foreach (\$files as \$file) {
-        if (is_file(\$file) && time() - filemtime(\$file) > 86400) {
+        if (is_file(\$file) && (time() - filemtime(\$file) > 86400)) {
             unlink(\$file);
         }
     }
@@ -79,9 +77,9 @@ if (isset(\$_POST['action']) && \$_POST['action'] == 'download') {
         \$new_files = glob(\$download_dir . "*");
         if (\$new_files) {
             \$file_path = \$new_files[0];
-            \$msg = "<div style='color:#3498db;border:1px solid #3498db;padding:15px;border-radius:12px;'><b>Berhasil!</b><br><small style='color:#888'>".basename(\$file_path)."</small><br><a href='\$file_path' download style='display:inline-block;background:#3498db;color:white;padding:12px 25px;margin-top:10px;text-decoration:none;border-radius:8px;font-weight:bold;'>UNDUH SEKARANG</a><br><p style='font-size:10px;color:#666;margin-top:5px;'>File tersedia selama 24 jam sebelum dihapus otomatis.</p></div>";
+            \$msg = "<div style='color:#3498db;border:1px solid #3498db;padding:15px;border-radius:12px;'><b>Berhasil!</b><br><small style='color:#888'>".basename(\$file_path)."</small><br><a href='\$file_path' download style='display:inline-block;background:#3498db;color:white;padding:12px 25px;margin-top:10px;text-decoration:none;border-radius:8px;font-weight:bold;'>UNDUH</a></div>";
         }
-    } else { \$msg = "<div style='color:#e74c3c;'>Gagal memproses media.</div>"; }
+    } else { \$msg = "<div style='color:#e74c3c;'>Gagal proses media.</div>"; }
 }
 
 if (isset(\$_POST['action']) && \$_POST['action'] == 'shorten') {
@@ -93,8 +91,7 @@ if (isset(\$_POST['action']) && \$_POST['action'] == 'shorten') {
     \$stmt = \$db->prepare("INSERT INTO links (code, url, expires_at) VALUES (?, ?, ?)");
     if(\$stmt->execute([\$code, \$url, \$expiry_date])) {
         \$domain = trim(@file_get_contents('domain.txt')) ?: \$_SERVER['HTTP_HOST'];
-        \$short = "https://".\$domain."/".\$code;
-        \$msg = "<div style='color:#3498db;'><b>Link Pendek:</b><br><input type='text' value='\$short' readonly onclick='this.select()' style='width:100%;text-align:center;padding:12px;background:#152333;color:white;border:1px solid #1e3a5a;margin-top:10px;border-radius:8px;'></div>";
+        \$msg = "<div style='color:#3498db;'><b>https://\$domain/\$code</b></div>";
     }
 }
 
@@ -108,40 +105,33 @@ if (\$path && !strpos(\$path, '.php') && !strpos(\$path, 'downloads/')) {
 ?>
 <!DOCTYPE html><html><head><title>FiTools Blue</title><meta name='viewport' content='width=device-width,initial-scale=1'><style>
 body{font-family:sans-serif;background:#050a0f;color:#dce4f0;margin:0;padding:15px}
-.card{background:#0d1621;padding:25px;border-radius:15px;max-width:450px;margin:10px auto;text-align:center;border:1px solid #1e3a5a;box-shadow:0 10px 30px rgba(0,0,0,0.5)}
-h2,h3{color:#3498db;margin:10px 0;text-transform:uppercase;letter-spacing:1px}
-input,select,button{width:100%;padding:14px;margin:10px 0;border-radius:10px;border:1px solid #1e3a5a;box-sizing:border-box;background:#152333;color:white;font-size:15px}
-button{background:#3498db;border:none;font-weight:bold;cursor:pointer;color:white;transition:0.3s}
-button:hover{background:#2980b9;transform:translateY(-2px)}
-.footer{font-size:11px;color:#4a6583;margin-top:25px;text-align:center}
+.card{background:#0d1621;padding:25px;border-radius:15px;max-width:450px;margin:10px auto;text-align:center;border:1px solid #1e3a5a}
+input,select,button{width:100%;padding:14px;margin:10px 0;border-radius:10px;border:1px solid #1e3a5a;background:#152333;color:white}
+button{background:#3498db;border:none;font-weight:bold;cursor:pointer}
 </style></head>
 <body>
     <div class='card'><h2>FiTools Blue 🛠️</h2><?=\$msg?></div>
     <div class='card'>
         <h3>📥 Downloader</h3>
-        <form method='post'><input type='hidden' name='action' value='download'><input type='url' name='d_url' placeholder='Link Video / Musik' required>
-        <select name='format'><option value='1080'>1080p</option><option value='720' selected>720p</option><option value='480'>480p</option><option value='mp3'>Musik MP3</option></select><button type='submit'>Mulai Proses</button></form>
+        <form method='post'><input type='hidden' name='action' value='download'><input type='url' name='d_url' placeholder='Link Media' required>
+        <select name='format'><option value='720' selected>720p</option><option value='mp3'>MP3</option></select><button type='submit'>Proses</button></form>
     </div>
     <div class='card'>
         <h3>🔗 Shortlink</h3>
         <form method='post'><input type='hidden' name='action' value='shorten'><input type='url' name='url' placeholder='Link Panjang' required><input type='text' name='custom' placeholder='Custom Nama'>
-        <select name='expiry'><option value='0'>Permanen</option><option value='3'>3 Hari</option><option value='7'>7 Hari</option><option value='30'>30 Hari</option></select>
+        <select name='expiry'><option value='0'>Permanen</option><option value='1'>1 Hari</option><option value='7'>7 Hari</option></select>
         <button type='submit'>Pendekkan</button></form>
     </div>
-    <div class='footer'>Fitunnel Project © 2026</div>
 </body></html>
 EOF
-            echo -e "${GREEN}Update Selesai! Masa simpan cache 24 Jam aktif.${NC}"
+            echo -e "${GREEN}Update Selesai!${NC}"
             sleep 2
             ;;
         2)
             mkdir -p "$DIR"
-            read -p "Masukkan Domain (contoh: tools.alfinet.my.id): " INPUT_DOMAIN
-            if [ ! -z "$INPUT_DOMAIN" ]; then
-                echo "$INPUT_DOMAIN" > "$DOMAIN_FILE"
-                DOMAIN="$INPUT_DOMAIN"
-                echo -e "${GREEN}Domain diset ke: $DOMAIN${NC}"
-            fi
+            read -p "Masukkan Domain: " INPUT_DOMAIN
+            [ ! -z "$INPUT_DOMAIN" ] && echo "$INPUT_DOMAIN" > "$DOMAIN_FILE" && DOMAIN="$INPUT_DOMAIN"
+            echo -e "${GREEN}Domain disimpan.${NC}"
             sleep 1
             ;;
         3)
@@ -155,7 +145,6 @@ EOF
             fi
             sleep 2
             ;;
-        4) pkill -9 -f "php -S"; pkill -9 cloudflared; echo -e "${RED}🛑 OFFLINE${NC}"; sleep 1 ;;
         5)
             clear
             echo -e "${BLUE}=== MANAJEMEN TUNNEL & DNS ===${NC}"
@@ -163,28 +152,41 @@ EOF
             echo "2) Login Cloudflare (Ambil Cert)"
             echo "3) Reset & Buat Tunnel Baru"
             echo "4) Hubungkan Domain (Auto Route)"
-            echo "5) Kembali"
-            read -p "Pilih [1-5]: " t_pilih
+            read -p "Pilih [1-4]: " t_pilih
             case $t_pilih in
                 1)
                     ID_TUN=$(cloudflared tunnel list | grep "termux-fitools" | awk '{print $1}')
-                    echo -e "\nTarget CNAME: ${YELLOW}${ID_TUN}.cfargotunnel.com${NC}\nProxy: ON | TTL: Auto"
+                    if [ -z "$ID_TUN" ]; then echo "Tunnel belum dibuat.";
+                    else
+                        echo -e "\n${CYAN}--- INFO CLOUDFLARE ---${NC}"
+                        echo -e "Type   : ${GREEN}CNAME${NC}"
+                        echo -e "Name   : ${GREEN}tools${NC}"
+                        echo -e "Target : ${YELLOW}${ID_TUN}.cfargotunnel.com${NC}"
+                        echo -e "Proxy  : ${YELLOW}ON (Awan Orange)${NC}"
+                        echo -e "TTL    : ${YELLOW}Auto${NC}"
+                        echo -e "${CYAN}-----------------------${NC}"
+                    fi
                     ;;
                 2) cloudflared tunnel login ;;
-                3) cloudflared tunnel delete -f termux-fitools > /dev/null 2>&1; cloudflared tunnel create termux-fitools ;;
+                3) cloudflared tunnel delete -f termux-fitools; cloudflared tunnel create termux-fitools ;;
                 4) read -p "Domain: " D_DNS; cloudflared tunnel route dns termux-fitools $D_DNS ;;
             esac
             read -p "Enter..."
             ;;
         6)
             clear
-            echo -e "${BLUE}--- LINK AKTIF ---${NC}"
-            sqlite3 "$DB" "SELECT id, code, url FROM links;" | sed 's/|/ | /g'
-            read -p "ID Hapus: " DEL_ID
-            [ ! -z "$DEL_ID" ] && sqlite3 "$DB" "DELETE FROM links WHERE id=$DEL_ID;"
+            echo -e "${BLUE}--- DAFTAR LINK & MASA EXPIRED ---${NC}"
+            if [ ! -f "$DB" ]; then echo "Database kosong.";
+            else
+                echo -e "${CYAN}ID | KODE | EXPIRED | URL${NC}"
+                sqlite3 "$DB" "SELECT id, code, IFNULL(expires_at, 'PERMANEN'), url FROM links;" | sed 's/|/ | /g'
+                echo "-----------------------------------"
+                read -p "Hapus ID (Kosongkan jika batal): " DEL_ID
+                [ ! -z "$DEL_ID" ] && sqlite3 "$DB" "DELETE FROM links WHERE id=$DEL_ID;" && echo "Dihapus!"
+            fi
             read -p "Enter..."
             ;;
-        7) rm -rf $DIR && echo "Reset!"; sleep 1 ;;
+        7) rm -rf $DIR && echo "Dibersihkan!"; sleep 1 ;;
         8) exit 0 ;;
     esac
 done
